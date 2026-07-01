@@ -15,7 +15,7 @@ def get_current_weather(city):
     url = "https://api.openweathermap.org/data/2.5/weather"
 
     params = {
-        "q": city,
+        "q": f"{city},PK",
         "appid": API_KEY,
         "units": "metric"
     }
@@ -33,7 +33,7 @@ def get_forecast(city):
     url = "https://api.openweathermap.org/data/2.5/forecast"
 
     params = {
-        "q": city,
+        "q": f"{city},PK",
         "appid": API_KEY,
         "units": "metric"
     }

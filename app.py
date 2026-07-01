@@ -1,5 +1,6 @@
 import streamlit as st
 from weather_api import get_current_weather, get_forecast
+from utils import extract_city
 
 
 # Page Setup
@@ -79,19 +80,9 @@ if user_input:
 
     # Extract City
 
-    text = user_input.lower()
+    city = extract_city(user_input)
 
-    city = (
-        text.replace("weather", "")
-        .replace("forecast", "")
-        .replace("5 days", "")
-        .replace("future", "")
-        .replace("in", "")
-        .strip()
-    )
-
-
-    city = city.title()
+   
 
 
 
@@ -115,6 +106,9 @@ if user_input:
 
 
             data = response.json()
+            # st.write(data["coord"])
+            # st.write(data["main"])
+            # st.write(data["weather"])
 
 
             bot_response = f"""
