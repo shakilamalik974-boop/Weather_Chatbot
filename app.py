@@ -96,9 +96,9 @@ if user_input:
     intent = analysis["intent"]
 
     city = analysis["city"]
-    st.write("Analysis:", analysis)
-    st.write("Intent:", intent)
-    st.write("City:", city)
+    # st.write("Analysis:", analysis)
+    # st.write("Intent:", intent)
+    # st.write("City:", city)
 
 
 
