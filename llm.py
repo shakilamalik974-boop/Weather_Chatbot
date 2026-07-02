@@ -1,161 +1,104 @@
 import os
-import json
 from groq import Groq
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
-
-client = Groq(
-    api_key=os.getenv("GROQ_API_KEY")
-)
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
+def chat_with_llm(user_query, weather_data=None, chat_history=None):
+    """
+    Single intelligent brain for everything
+    """
 
-def extract_intent(user_query):
+    system_prompt = """
+You are a high-accuracy AI Weather Assistant.
 
-    prompt = f"""
-You are an AI assistant that extracts information for a weather chatbot.
+Your job is ONLY to provide weather-related information.
 
-Analyze the user query and return ONLY valid JSON.
-No explanation.
-No markdown.
+========================
+CORE RULES
+========================
 
-Extract:
+1. ONLY answer weather-related queries:
+   - weather conditions
+   - temperature
+   - humidity
+   - wind
+   - rain prediction
+   - umbrella/jacket advice
+   - forecasts
 
-intent:
-- current_weather
-- forecast
-- not_weather
+2. If user asks NON-weather questions:
+   Politely respond:
+   "I can only help with weather-related questions."
 
-city:
-- city name only
-- if no city found, return empty string
+3. NEVER guess or hallucinate:
+   - If weather data is not provided, say:
+     "I don't have enough weather data for this location."
 
-time:
-- today
-- tomorrow
-- yesterday
-- unknown
+4. ALWAYS use provided weather data when available.
+   Do NOT assume values.
 
+5. If user asks follow-up questions (e.g. "humidity", "what about tomorrow", "should I carry umbrella"):
+   - Use last provided weather context
+   - Do NOT ask user to repeat city
 
+6. Keep responses:
+   - Short (2–5 lines max)
+   - Clear
+   - Natural human tone
+   - No unnecessary explanations
 
-User query:
-{user_query}
+7. Recommendations rules:
+   - Umbrella → only if rain probability or cloudy/rain condition exists
+   - Heat advice → only if temp > 32°C
+   - Cold advice → only if temp < 15°C
 
+8. If city is missing:
+   Try to use previous conversation context.
+   If still unknown, ask:
+   "Please tell me the city you want weather for."
 
-Example:
+========================
+OUTPUT STYLE
+========================
 
-User:
-How is the weather in Lahore today?
-
-Return:
-
-{{
-"intent":"current_weather",
-"city":"Lahore",
-"time":"today"
-}}
-
+- No JSON
+- No technical language
+- No API mentions
+- No long paragraphs
+- Direct answers only
 """
 
+    messages = [
+        {"role": "system", "content": system_prompt}
+    ]
 
-    response = client.chat.completions.create(
+    if chat_history:
+        messages.extend(chat_history[-6:])  # memory (last 6 messages)
 
-        model="llama-3.3-70b-versatile",
+    user_content = user_query
 
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
+    if weather_data:
+        user_content += f"""
 
-        temperature=0
-    )
-
-
-    result = response.choices[0].message.content
-
-
-    result = result.replace("```json", "")
-    result = result.replace("```", "")
-    result = result.strip()
-
-
-    return json.loads(result)
-
-
-
-
-
-def generate_response(user_query, weather_data):
-
-
-    prompt = f"""
-
-You are a friendly AI Weather Assistant.
-
-Your job is to answer weather-related questions.
-
-User asked:
-{user_query}
-
-
-Weather data:
-
-City:
-{weather_data['name']}
-
-Temperature:
-{weather_data['main']['temp']} °C
-
-Feels like:
-{weather_data['main']['feels_like']} °C
-
-Humidity:
-{weather_data['main']['humidity']}%
-
-Condition:
-{weather_data['weather'][0]['description']}
-
-Wind speed:
-{weather_data['wind']['speed']} m/s
-
-
-Instructions:
-
-- Answer naturally like a human.
-- Keep response clear and helpful.
-- Give small recommendations when useful.
-- Do not mention APIs.
-- Do not mention JSON.
-- Do not say you are an AI model.
-- Answer according to user's question.
-- If user asks only temperature, only give temperature.
-- If user asks humidity, only give humidity.
-- Keep answers short (2-4 lines).
-- Give recommendations only if user asks.
-- Do not repeat all weather details every time.
-
-
+Weather Data:
+City: {weather_data.get('name')}
+Temperature: {weather_data['main']['temp']}°C
+Feels Like: {weather_data['main']['feels_like']}°C
+Humidity: {weather_data['main']['humidity']}%
+Condition: {weather_data['weather'][0]['description']}
+Wind: {weather_data['wind']['speed']} m/s
 """
 
+    messages.append({"role": "user", "content": user_content})
 
     response = client.chat.completions.create(
-
         model="llama-3.3-70b-versatile",
-
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-
-        temperature=0.7
+        messages=messages,
+        temperature=0.6
     )
-
 
     return response.choices[0].message.content
