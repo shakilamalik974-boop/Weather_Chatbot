@@ -148,6 +148,9 @@ Please ask me something related to weather.
 
 
             response = get_current_weather(city)
+            
+            st.write(response.status_code)
+            st.json(response.json())
 
 
 
