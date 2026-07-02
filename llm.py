@@ -65,6 +65,8 @@ WEATHER ANSWERING RULES
 - Never guess or invent values.
 - Keep answers short (2–5 lines max).
 - Be natural and conversational.
+- NEVER treat words like "tell", "only", "just", "what", "how" as city names.
+- If no real city is found, use previous city from conversation.
 
 If data is missing:
 "Sorry, I don’t have weather data for this location right now."
